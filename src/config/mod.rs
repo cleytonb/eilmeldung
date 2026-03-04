@@ -361,22 +361,24 @@ pub fn resolve_config_dir(cli_args: &CliArgs) -> PathBuf {
         return PathBuf::from(cli_config_path);
     };
 
-    // then try "official path"
-    try_path(PROJECT_DIRS.config_dir())
-        // or $XDG_CONFIG_HOME/eilmeldung
-        .or_else(|| {
-            env::var("XDG_CONFIG_HOME")
-                .ok()
-                .and_then(|path| try_path(&extend_eilmeldung(None, &path)))
-        })
+    // first try $XDG_CONFIG_HOME/eilmeldung
+    env::var("XDG_CONFIG_HOME")
+        .ok()
+        .and_then(|path| try_path(&extend_eilmeldung(None, &path)))
         // or $HOME/.config/eilmeldung
         .or_else(|| {
             env::var("HOME")
                 .ok()
                 .and_then(|home_path| try_path(&extend_eilmeldung(Some(".config"), &home_path)))
         })
-        // if none worked, revert to "official" one
-        .unwrap_or(PathBuf::from(PROJECT_DIRS.config_dir()))
+        // then try "official path" (e.g. ~/Library/Application Support on macOS)
+        .or_else(|| try_path(PROJECT_DIRS.config_dir()))
+        // if none worked, default to $HOME/.config/eilmeldung
+        .unwrap_or_else(|| {
+            env::var("HOME")
+                .map(|home| extend_eilmeldung(Some(".config"), &home))
+                .unwrap_or_else(|_| PathBuf::from(PROJECT_DIRS.config_dir()))
+        })
 }
 
 pub fn load_config(config_dir: &Path) -> color_eyre::Result<Config> {

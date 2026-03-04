@@ -25,7 +25,6 @@ async fn main() -> color_eyre::Result<()> {
     let cli_args = CliArgs::parse();
 
     let config_dir = resolve_config_dir(&cli_args);
-
     let state_dir = cli_args
         .state_dir()
         .as_ref()
