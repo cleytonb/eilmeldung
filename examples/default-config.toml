@@ -61,6 +61,9 @@ thumbnail_resize = true
 thumbnail_fetch_debounce_millis = 500
 text_max_width = 66
 content_preferred_type = "markdown"
+# Strings to filter from article content (case-insensitive, line-level match)
+# content_filter_strings = ["CONTINUA APÓS PUBLICIDADE", "LEIA TAMBÉM"]
+content_filter_strings = []
 
 # Layout
 show_top_bar = true

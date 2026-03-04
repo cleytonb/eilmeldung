@@ -413,11 +413,19 @@ impl ArticleContentViewData {
                 info!("no markdown available, falling back to html2text");
                 // Fallback - convert to plain text instead of markdown to avoid lifetime issues
                 let plain_text = news_flash::util::html2text::html2text(html);
+                let plain_text = ArticleContentModelData::filter_content(
+                    &plain_text,
+                    &config.content_filter_strings,
+                );
                 Text::from(plain_text)
             }
         } else if let Some(plain_text) = fat_article.plain_text.as_deref() {
             info!("rendering plain text content");
-            Text::from(plain_text)
+            let filtered = ArticleContentModelData::filter_content(
+                plain_text,
+                &config.content_filter_strings,
+            );
+            Text::from(filtered)
         } else {
             info!("no content available");
             Text::from("no content available")

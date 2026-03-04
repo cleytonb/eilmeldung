@@ -164,6 +164,7 @@ pub struct Config {
     pub thumbnail_fetch_debounce_millis: u64,
     pub text_max_width: u16,
     pub content_preferred_type: ArticleContentType,
+    pub content_filter_strings: Vec<String>,
     pub hide_default_sort_order: bool,
     pub default_sort_order: SortOrder,
     pub zen_mode_show_header: bool,
@@ -290,6 +291,7 @@ impl Default for Config {
             thumbnail_fetch_debounce_millis: 500,
             text_max_width: 66,
             content_preferred_type: ArticleContentType::Markdown,
+            content_filter_strings: Vec::default(),
             zen_mode_show_header: false,
 
             feed_list_focused_width: Dimension::Percentage(25),

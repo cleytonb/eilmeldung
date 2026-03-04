@@ -168,7 +168,9 @@ impl ArticleContentModelData {
             // create html to markdown converter
             let html2markdown = HtmlToMarkdown::builder().build();
 
-            self.markdown_content = Some(html2markdown.convert(html)?);
+            let mut markdown = html2markdown.convert(html)?;
+            markdown = Self::filter_content(&markdown, &config.content_filter_strings);
+            self.markdown_content = Some(markdown);
         }
         Ok(())
     }
@@ -243,6 +245,20 @@ impl ArticleContentModelData {
     pub(super) fn on_thumbnail_fetch_failed(&mut self) {
         self.thumbnail_fetch_successful = Some(false);
         self.thumbnail_fetch_running = false;
+    }
+
+    pub(super) fn filter_content(content: &str, filters: &[String]) -> String {
+        if filters.is_empty() {
+            return content.to_owned();
+        }
+        content
+            .lines()
+            .filter(|line| {
+                let lower = line.to_lowercase();
+                !filters.iter().any(|f| lower.contains(&f.to_lowercase()))
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
     }
 
     pub(super) fn clean_string(string: &str) -> String {
