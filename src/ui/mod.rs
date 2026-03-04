@@ -280,8 +280,7 @@ impl App {
         );
 
         while self.is_running {
-            let can_process_batch =
-                !self.news_flash_utils.is_async_operation_running() && rx.is_empty();
+            let can_process_batch = rx.is_empty();
 
             tokio::select! {
 

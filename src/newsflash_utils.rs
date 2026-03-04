@@ -205,7 +205,7 @@ impl NewsFlashUtils {
         params: (article_ids: Vec<ArticleID>, marked: Marked),
         news_flash_var: news_flash,
         client_var: client,
-        start_event: Event::AsyncArticlesSetRead,
+        start_event: Event::AsyncArticlesMark,
         operation: news_flash.set_article_marked(&article_ids, marked, &client).await?,
         success_event: Event::AsyncArticlesMarkFinished,
     }
