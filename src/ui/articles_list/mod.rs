@@ -379,7 +379,24 @@ impl ArticlesList {
             .find(|&tag| tag.label == tag_name)
         {
             Some(tag) => {
-                self.change_tag(&action_scope, tag.clone(), tag_articles)?;
+                // For Current scope, implement toggle: check if tag already exists
+                let should_add = if matches!(action_scope, ActionScope::Current) {
+                    if let Some(article) = self.get_current_article() {
+                        let has_tag = self
+                            .model_data
+                            .tags_for_article()
+                            .get(&article.article_id)
+                            .map(|tags| tags.contains(&tag.tag_id))
+                            .unwrap_or(false);
+                        !has_tag // toggle: add if doesn't have, remove if has
+                    } else {
+                        tag_articles
+                    }
+                } else {
+                    tag_articles
+                };
+
+                self.change_tag(&action_scope, tag.clone(), should_add)?;
             }
             None => {
                 log::warn!("could not find tag with name {}", tag_name);

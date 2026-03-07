@@ -1,5 +1,6 @@
 use crate::prelude::*;
 
+use news_flash::models::ArticleID;
 use std::{str::FromStr, sync::Arc};
 
 use log::trace;
@@ -24,6 +25,7 @@ pub struct CommandInput {
     history_index: usize,
 
     is_active: bool,
+    current_article_id: Option<ArticleID>,
 }
 
 impl CommandInput {
@@ -44,6 +46,7 @@ impl CommandInput {
             command_hint: None,
             history_index: 0,
             is_active: false,
+            current_article_id: None,
         }
     }
 
@@ -265,22 +268,40 @@ impl CommandInput {
         &mut self,
         current_part: &str,
     ) -> color_eyre::Result<()> {
-        let (tags, _) = {
+        let (tags, taggings) = {
             let news_flash = self.news_flash_utils.news_flash_lock.read().await;
             news_flash.get_tags()?
         };
+
+        // Create a mapping of article_id -> tag_ids for the current article
+        let current_article_tag_ids: Vec<_> = taggings
+            .iter()
+            .filter_map(|tagging| {
+                self.current_article_id
+                    .as_ref()
+                    .filter(|id| id == &&tagging.article_id)
+                    .map(|_| tagging.tag_id.clone())
+            })
+            .collect();
 
         self.completion_targets = Some(tags.iter().map(|tag| tag.label.to_owned()).collect());
 
         let tag_spans = tags
             .into_iter()
             .map(|tag| {
-                NewsFlashUtils::tag_to_line(
+                let mut line = NewsFlashUtils::tag_to_line(
                     &tag,
                     &self.config,
                     (!tag.label.starts_with(current_part))
                         .then_some(self.config.theme.inactive().fg.unwrap_or_default()),
-                )
+                );
+
+                // Add checkmark if tag is already applied to current article
+                if current_article_tag_ids.contains(&tag.tag_id) {
+                    line.spans.insert(0, Span::raw("✓ "));
+                }
+
+                line
             })
             .collect::<Vec<Line<'_>>>();
 
@@ -763,6 +784,11 @@ impl crate::messages::MessageReceiver for CommandInput {
     async fn process_command(&mut self, message: &Message) -> color_eyre::Result<()> {
         let mut view_needs_update = true;
         match message {
+            Message::Event(Event::ArticleSelected(article_id)) => {
+                self.current_article_id = Some(article_id.clone());
+                view_needs_update = false;
+            }
+
             Message::Event(Event::Key(key_event)) if self.is_active => {
                 let key: Key = (*key_event).into();
 
