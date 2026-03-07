@@ -254,6 +254,12 @@ impl Command {
                 C::TagAdd(tag_title, color)
             }
 
+            C::TagDel(..) => {
+                let tag_title = expect_word(&mut args, "expecting tag name")?;
+                expect_nothing(args)?;
+                C::TagDel(tag_title)
+            }
+
             C::FeedListExpandCategories(_) => C::FeedListExpandCategories(
                 expect_from_str(&mut args, "article scope expected")
                     .map_err(|_| E::ArticleScopeExpected)?,

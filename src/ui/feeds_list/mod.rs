@@ -776,6 +776,18 @@ impl MessageReceiver for FeedList {
                     }
                 }
 
+                C::TagDel(name) if self.check_tag_capability().await? => {
+                    if let Some(tag) = self.model_data.get_tag_by_label(&name) {
+                        self.model_data.remove_tag(tag.tag_id.to_owned())?;
+                    } else {
+                        tooltip(
+                            &self.message_sender,
+                            format!("tag with name {} not found", name).as_str(),
+                            TooltipFlavor::Error,
+                        )?;
+                    }
+                }
+
                 C::FeedListTagChangeColor(color) => match self.selected() {
                     Some(FeedListItem::Tag(tag)) => {
                         self.model_data.edit_tag(

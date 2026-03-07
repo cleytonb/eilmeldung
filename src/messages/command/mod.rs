@@ -476,6 +476,13 @@ pub enum Command {
     )]
     TagAdd(String, Option<Color>),
 
+    #[strum(
+        serialize = "tagdel",
+        message = "tagdel <tag name>",
+        detailed_message = "deletes the tag with the given name (feed list)"
+    )]
+    TagDel(String),
+
     // article list commands
     #[strum(
         serialize = "nextunread",
@@ -813,6 +820,9 @@ impl Display for Command {
             HelpInput => write!(f, "show help on input mappings"),
             TagAdd(tag_title, _) => {
                 write!(f, "add tag #{}", tag_title)
+            }
+            TagDel(tag_title) => {
+                write!(f, "delete tag #{}", tag_title)
             }
             CommandConfirm(command) => write!(f, "{}?", command),
             In(panel, command) => write!(f, "{command} in {panel}"),
